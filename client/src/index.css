@@ -1,0 +1,85 @@
+@import './css/global.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@layer components {
+  body{
+    /* @apply overflow-hidden */
+  }
+  .header {
+    @apply w-full flex items-center px-10 justify-between h-[100px] text-black bg-white bg-opacity-40 ;
+  }
+  .header:hover{
+    @apply bg-black text-white bg-opacity-50 transition-colors duration-500;
+  }
+
+  .headerbtn{
+    @apply mx-[10px]
+  }
+  .logo {
+  @apply w-20 h-20 object-contain cursor-pointer;
+}
+.menu{
+  @apply w-[70%] h-full flex justify-evenly  relative;
+}
+
+.menuBtn {
+  @apply h-full flex items-center cursor-pointer;
+}
+.menuBtn button{
+  @apply h-full px-1 block relative
+}
+.menuBtn button::after {
+  content: "";
+  @apply absolute left-0 bottom-8 h-[1px] w-full border-b-2 border-green-700
+         scale-x-0 origin-left
+         transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)];
+}
+
+.menuBtn button:hover::after {
+  @apply scale-x-100;
+}
+
+  .submenu{
+    @apply absolute h-[60px] text-white bg-black bg-opacity-30  bottom-[-60px] flex w-[200%] shadow-lg p-3
+            transition-transform scale-y-0 origin-top duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]
+            invisible
+  }
+
+  .submenu.hover{
+    @apply scale-y-100 visible z-0 
+  }
+
+
+  .submenu div + div{
+    @apply ml-20
+  }
+
+  .editBtn.on {
+    @apply border border-blue-600 text-blue-600;
+  }
+
+  /* icon */
+  .ico-mypage{
+    @apply bg-[url('/ico-mypage.png')] bg-no-repeat bg-center bg-contain w-6 h-6
+  }
+  .ico-favorite{
+    @apply bg-[url('/ico-favorite.png')] bg-no-repeat bg-center bg-contain w-6 h-6
+  }
+  .ico-cart{
+    @apply bg-[url('/ico-cart.png')] bg-no-repeat bg-center bg-contain w-7 h-7
+  }
+  .ico-mypage_w{
+    @apply bg-[url('/ico-mypage_w.png')] bg-no-repeat bg-center bg-contain w-6 h-6
+  }
+  .ico-favorite_w{
+    @apply bg-[url('/ico-favorite_w.png')] bg-no-repeat bg-center bg-contain w-6 h-6
+  }
+  .ico-cart_w{
+    @apply bg-[url('/ico-cart_w.png')] bg-no-repeat bg-center bg-contain w-7 h-7
+  }
+
+}
