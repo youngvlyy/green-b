@@ -86,7 +86,7 @@ export default function Home() {
 
         {/* S2: 베스트 상품 */}
         <section className={`home-sec s2 ${entered(1)}`}>
-          <div className="s2-deco-num">02</div>
+          {/* <div className="s2-deco-num">02</div> */}
           <div className="s2-inner">
             <div className="sec-eyebrow">Best Sellers</div>
             <h2 className="sec-h2 dark">가장 사랑받는 빵들</h2>
