@@ -17,7 +17,7 @@ const DELIVERY = 3000;
 
 export default function Cart() {
   const navigate = useNavigate();
-  const [items,   setItems]   = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,6 +27,7 @@ export default function Cart() {
       .finally(() => setLoading(false));
   }, []);
 
+  // +/- 버튼: 즉시 API 호출
   const changeQty = async (item: CartItem, delta: number) => {
     const next = Math.max(1, item.quantity + delta);
     setItems(prev => prev.map(i => i.product_id === item.product_id ? { ...i, quantity: next } : i));
@@ -34,6 +35,28 @@ export default function Cart() {
       await api.patch(`/cart/${item.product_id}`, { quantity: next });
     } catch {
       setItems(prev => prev.map(i => i.product_id === item.product_id ? { ...i, quantity: item.quantity } : i));
+    }
+  };
+
+  // input onChange: items 상태만 변경 (API는 onBlur에서 호출)
+  const handleQtyInput = (productId: number, val: string) => {
+    const num = parseInt(val, 10);
+    setItems(prev => prev.map(i =>
+      i.product_id === productId ? { ...i, quantity: isNaN(num) ? 0 : num } : i
+    ));
+  };
+
+  // onBlur: 유효하지 않은 값 복구 + API 호출
+  const handleQtyBlur = async (item: CartItem) => {
+    const current = items.find(i => i.product_id === item.product_id);
+    const next = (!current || current.quantity < 1) ? 1 : current.quantity;
+    setItems(prev => prev.map(i => i.product_id === item.product_id ? { ...i, quantity: next } : i));
+    if (next !== item.quantity) {
+      try {
+        await api.patch(`/cart/${item.product_id}`, { quantity: next });
+      } catch {
+        setItems(prev => prev.map(i => i.product_id === item.product_id ? { ...i, quantity: item.quantity } : i));
+      }
     }
   };
 
@@ -47,8 +70,8 @@ export default function Cart() {
   };
 
   const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const total    = subtotal + (items.length > 0 ? DELIVERY : 0);
-  const fmt      = (n: number) => `₩ ${n.toLocaleString()}`;
+  const total = subtotal + (items.length > 0 ? DELIVERY : 0);
+  const fmt = (n: number) => `₩ ${n.toLocaleString()}`;
 
   return (
     <div className="gb-page">
@@ -60,8 +83,10 @@ export default function Cart() {
 
       <div className="gb-page-body">
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '80px 0', color: 'rgba(26,14,6,0.3)',
-            fontFamily: 'Noto Sans KR, sans-serif', fontSize: 13 }}>
+          <div style={{
+            textAlign: 'center', padding: '80px 0', color: 'rgba(26,14,6,0.3)',
+            fontFamily: 'Noto Sans KR, sans-serif', fontSize: 13
+          }}>
             불러오는 중...
           </div>
         ) : items.length === 0 ? (
@@ -94,7 +119,14 @@ export default function Cart() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div className="cart-qty">
                         <button className="cart-qty-btn" onClick={() => changeQty(item, -1)}>−</button>
-                        <span className="cart-qty-val">{item.quantity}</span>
+                        <input
+                          type="number"
+                          value={item.quantity === 0 ? '' : item.quantity}
+                          className="pd-qty-num"
+                          min={1}
+                          onChange={e => handleQtyInput(item.product_id, e.target.value)}
+                          onBlur={() => handleQtyBlur(item)}
+                        />
                         <button className="cart-qty-btn" onClick={() => changeQty(item, +1)}>+</button>
                       </div>
                       <button className="cart-remove-btn" onClick={() => removeItem(item)}>✕</button>

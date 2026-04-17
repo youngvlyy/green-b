@@ -30,7 +30,7 @@ INSERT INTO products (name, category, img, price, description, is_new, is_best) 
 ('콘치즈빵',           '빵류',  '/product/corncheese.png',            3500, '달콤한 콘과 고소한 치즈가 가득',                  FALSE, FALSE),
 ('핫도그',            '빵류',  '/product/hotdog.png',                3000, '쫀득한 반죽에 소시지가 들어간 인기 빵',            FALSE, FALSE),
 ('상투과자',           '빵류',  '/product/sangtu.png',                2200, '바삭하고 고소한 전통 상투과자',                   FALSE, FALSE),
-('청유브',            '빵류',  '/product/chuengyub.png',             3500, '특제 크림이 가득 담긴 시그니처 빵',               TRUE,  FALSE);
+('천겹식빵',            '빵류',  '/product/chuengyub.png',             3500, '특제 크림이 가득 담긴 시그니처 빵',               TRUE,  FALSE);
 
 -- 재고 초기값 (각 제품 100개)
 INSERT INTO inventory (product_id, quantity)

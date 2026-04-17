@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import type { Product } from './Products';
+import AutoSwiper from '../component/AutoSwiper';
 import '../css/home.css';
 
 export default function Home() {
@@ -7,6 +10,13 @@ export default function Home() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState(0);
   const [enteredSections, setEnteredSections] = useState<Set<number>>(new Set([0]));
+  const [bestItems, setBestItems] = useState<Product[]>([]);
+  const [newItems,  setNewItems]  = useState<Product[]>([]);
+
+  useEffect(() => {
+    axios.get('/api/products', { params: { is_best: 'true' } }).then(r => setBestItems(r.data));
+    axios.get('/api/products', { params: { is_new:  'true' } }).then(r => setNewItems(r.data));
+  }, []);
 
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -28,18 +38,6 @@ export default function Home() {
 
   const entered = (i: number) => enteredSections.has(i) ? 'sec-entered' : '';
 
-  const bestItems = [
-    { emoji: '🥐', num: 'No. 01', name: '버터 크루아상', desc: '프랑스산 AOP 버터로 72시간 발효한, 결이 살아있는 크루아상', price: '₩ 3,800' },
-    { emoji: '🍞', num: 'No. 02', name: '통밀 사워도우', desc: '48시간 천연 발효, 깊고 풍부한 산미의 시그니처 사워도우', price: '₩ 8,500' },
-    { emoji: '🧁', num: 'No. 03', name: '시그니처 케이크', desc: '매일 아침 신선하게 완성되는 부드러운 생크림 케이크', price: '₩ 6,200' },
-  ];
-
-  const newItems = [
-    { emoji: '🍓', name: '딸기 타르트', price: '₩ 7,500' },
-    { emoji: '🫐', name: '블루베리 스콘', price: '₩ 4,200' },
-    { emoji: '🍋', name: '레몬 파운드', price: '₩ 5,800' },
-    { emoji: '🌿', name: '말차 크림번', price: '₩ 4,800' },
-  ];
 
   return (
     <div className="home-root">
@@ -65,17 +63,17 @@ export default function Home() {
           <div className="s1-line s1-line-left" />
           <div className="s1-line s1-line-right" />
           <div className="s1-content">
-            <div className="s1-tag">
+            {/* <div className="s1-tag">
               <span className="s1-tag-line" />
               Artisan Bakery Seoul · Since 2014
               <span className="s1-tag-line" />
-            </div>
+            </div> */}
             <h1 className="s1-h1">
-              매일 굽는<br /><em>신선한</em>
+              OEM협력사<br /><em>HACCP인증</em>
             </h1>
-            <div className="s1-h1-sub">빵의 온기</div>
+            <div className="s1-h1-sub">문의, 상담 환영합니다</div>
             <div className="s1-divider" />
-            <p className="s1-desc">좋은 재료, 정직한 손맛<br />새벽 네 시의 정성이 담긴 빵</p>
+            <p className="s1-desc"></p>
             <button className="btn-primary" onClick={() => navigate('/cart')}>지금 주문하기</button>
           </div>
           <div className="s1-scroll">
@@ -91,24 +89,30 @@ export default function Home() {
           <div className="s2-deco-num">02</div>
           <div className="s2-inner">
             <div className="sec-eyebrow">Best Sellers</div>
-            <h2 className="sec-h2 dark">가장 사랑받는<br />빵들</h2>
-            <div className="cards-grid">
-              {bestItems.map((item, i) => (
-                <div className="best-card" key={i}>
-                  <span className="card-emoji">{item.emoji}</span>
-                  <div className="card-num">{item.num}</div>
+            <h2 className="sec-h2 dark">가장 사랑받는 빵들</h2>
+            <AutoSwiper
+              items={bestItems}
+              perView={3}
+              gap="1px"
+              interval={4000}
+              className="best-swiper"
+              renderItem={(item, i) => (
+                <div className="best-card" onClick={() => navigate(`/products/${item.id}`)}>
+                  <img src={item.img} alt={item.name} className="card-img"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  <div className="card-num">No. {String(i + 1).padStart(2, '0')}</div>
                   <div className="card-name">{item.name}</div>
-                  <div className="card-desc">{item.desc}</div>
-                  <div className="card-price">{item.price}</div>
+                  <div className="card-desc">{item.description}</div>
+                  <div className="card-price">₩ {item.price.toLocaleString()}</div>
                 </div>
-              ))}
-            </div>
+              )}
+            />
           </div>
         </section>
 
         {/* S3: 브랜드 스토리 */}
-        <section className={`home-sec s3 ${entered(2)}`}>
-          <div className="s3-bg-text">Green Bakery</div>
+        {/* <section className={`home-sec s3 ${entered(2)}`}>
+          <div className="s3-bg-text">Green B&F</div>
           <div className="s3-inner">
             <div className="s3-left">
               <div className="s3-frame">
@@ -131,10 +135,10 @@ export default function Home() {
               <button className="btn-outline">브랜드 스토리 보기</button>
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* S4: 신상품 */}
-        <section className={`home-sec s4 ${entered(3)}`}>
+        <section className={`home-sec s4 ${entered(2)}`}>
           <div className="s4-inner">
             <div className="s4-left">
               <div className="sec-eyebrow">New Arrivals</div>
@@ -142,16 +146,22 @@ export default function Home() {
               <p className="s4-sub">매주 제철 재료를 담아<br />특별한 빵을 선보입니다.</p>
               <button className="btn-primary" onClick={() => navigate('/cart')}>전체 메뉴 보기</button>
             </div>
-            <div className="new-grid">
-              {newItems.map((item, i) => (
-                <div className="new-card" key={i}>
-                  <div className="new-emoji">{item.emoji}</div>
+            <AutoSwiper
+              items={newItems}
+              perView={2}
+              gap="16px"
+              interval={3500}
+              className="new-swiper"
+              renderItem={(item) => (
+                <div className="new-card" onClick={() => navigate(`/products/${item.id}`)}>
+                  <img src={item.img} alt={item.name} className="new-img"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   <div className="new-badge">New</div>
                   <div className="new-name">{item.name}</div>
-                  <div className="new-price">{item.price}</div>
+                  <div className="new-price">₩ {item.price.toLocaleString()}</div>
                 </div>
-              ))}
-            </div>
+              )}
+            />
           </div>
         </section>
 

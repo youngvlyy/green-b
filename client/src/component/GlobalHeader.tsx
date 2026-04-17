@@ -41,7 +41,7 @@ export default function GlobalHeader({ user }: Props) {
       {/* 로고 */}
       <div className="gb-logo-wrap" onClick={() => navigate('/')}>
         <img src="/logo.png" alt="Green B&F" className="gb-logo-img" />
-        <span className="gb-logo-text">Green <em>B&F</em></span>
+        <span className="gb-logo-text">G <em>Bakery</em></span>
       </div>
 
       {/* 네비게이션 */}

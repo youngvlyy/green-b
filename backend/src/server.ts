@@ -133,7 +133,7 @@ router.get('/cart', requireAuth, async (req, res) => {
 router.post('/cart', requireAuth, async (req, res) => {
   const uid = (req as any).uid;
   const { product_id } = req.body;
-  const quantity = req.body.quantity ?? 1; 
+  const {quantity} = req.body.quantity ?? 1; 
 
   try {
     if (!product_id) return res.status(400).json({ message: 'product_id 필요' });
@@ -240,19 +240,32 @@ router.delete('/favorites/:product_id', requireAuth, async (req, res) => {
 
 // 제품 목록 조회 — GET /api/products?category=롤%26번&sort=price_asc
 router.get('/products', async (req, res) => {
-  const { category, sort } = req.query as { category?: string; sort?: string };
+  const { category, sort, is_new, is_best } = req.query as {
+    category?: string; sort?: string; is_new?: string; is_best?: string;
+  };
+
+  const conditions: string[] = [];
+  const params: (string | boolean)[] = [];
+
+  if (category && category !== '전체') {
+    params.push(category);
+    conditions.push(`category = $${params.length}`);
+  }
+  if (is_new === 'true') {
+    params.push(true);
+    conditions.push(`is_new = $${params.length}`);
+  }
+  if (is_best === 'true') {
+    params.push(true);
+    conditions.push(`is_best = $${params.length}`);
+  }
 
   let query = `
     SELECT id, name, category, img, price::int AS price,
            description, is_new, is_best
     FROM products
   `;
-  const params: string[] = [];
-
-  if (category && category !== '전체') {
-    params.push(category);
-    query += ` WHERE category = $${params.length}`;
-  }
+  if (conditions.length) query += ` WHERE ${conditions.join(' AND ')}`;
 
   if (sort === 'price_asc')  query += ' ORDER BY price ASC';
   else if (sort === 'price_desc') query += ' ORDER BY price DESC';
