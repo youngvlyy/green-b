@@ -1,66 +1,21 @@
 import express, { Request, Response, NextFunction } from 'express';
-import admin from 'firebase-admin';
 import pool from './PostgreSQL';
+import { verifyAccess } from './auth';
 
 const router = express.Router();
 
-async function requireAuth(req: Request, res: Response, next: NextFunction) {
+function requireAuth(req: Request, res: Response, next: NextFunction) {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ message: '인증 필요' });
   try {
-    const decoded = await admin.auth().verifyIdToken(token);
+    const decoded = verifyAccess(token);
     (req as any).uid = decoded.uid;
     next();
   } catch {
-    res.status(401).json({ message: '유효하지 않은 토큰' });
+    res.status(401).json({ message: '만료되거나 유효하지 않은 토큰' });
   }
 }
 
-// 회원가입 — Firebase 가입 완료 후 호출
-// Authorization: Bearer <Firebase ID Token>
-router.post('/signup', async (req, res) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) {
-    return res.status(401).json({ message: '인증 토큰 없음' });
-  }
-
-  let decoded: admin.auth.DecodedIdToken;
-  try {
-    decoded = await admin.auth().verifyIdToken(token);
-  } catch {
-    return res.status(401).json({ message: '유효하지 않은 토큰' });
-  }
-
-  const { name, phone, company } = req.body;
-
-  if (!name?.trim()) {
-    return res.status(400).json({ message: '이름은 필수입니다' });
-  }
-
-  try {
-    await pool.query(
-      `INSERT INTO members (firebase_uid, email, name, phone, company)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [
-        decoded.uid,
-        decoded.email,
-        name.trim(),
-        phone?.trim()   || null,
-        company?.trim() || null,
-      ]
-    );
-
-    return res.status(201).json({ success: true });
-
-  } catch (err: any) {
-    // PostgreSQL 유니크 제약 위반 (중복 이메일 / 중복 uid)
-    if (err.code === '23505') {
-      return res.status(409).json({ message: '이미 가입된 계정입니다' });
-    }
-    console.error('[signup]', err);
-    return res.status(500).json({ message: '서버 오류' });
-  }
-});
 
 // 회원 정보 조회
 router.get('/user/:uid', async (req, res) => {
@@ -132,8 +87,8 @@ router.get('/cart', requireAuth, async (req, res) => {
 // 장바구니 담기
 router.post('/cart', requireAuth, async (req, res) => {
   const uid = (req as any).uid;
-  const { product_id } = req.body;
-  const {quantity} = req.body.quantity ?? 1; 
+  const { product_id, quantity: rawQty } = req.body;
+  const quantity = rawQty ?? 1;
 
   try {
     if (!product_id) return res.status(400).json({ message: 'product_id 필요' });

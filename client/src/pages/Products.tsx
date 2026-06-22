@@ -27,7 +27,7 @@ const SORT_OPTIONS = [
 
 export default function Products() {
   const navigate = useNavigate();
-  const user = useAuth();
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const category = searchParams.get('category') || '전체';

@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -8,28 +9,31 @@ import Cart from './pages/Cart';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
 import GlobalHeader from './component/GlobalHeader';
-import { useAuth } from './hooks/useAuth';
+import KakaoCallback from './pages/KakaoCallback';
 
-const NO_HEADER = ['/login', '/signup'];
+const NO_HEADER = ['/login', '/signup', '/auth/kakao/callback'];
 
 function AppContent() {
-  const user = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
   const showHeader = !NO_HEADER.includes(location.pathname);
+
+  if (loading) return null;
 
   return (
     <>
       {showHeader && <GlobalHeader user={user} />}
       <Routes>
-        <Route path="/"        element={<Home />} />
-        <Route path="/login"   element={user ? <Navigate to="/" /> : <Login />} />
-        <Route path="/signup"  element={user ? <Navigate to="/" /> : <Signup />} />
-        <Route path="/mypage"  element={user ? <Mypage />   : <Navigate to="/login" />} />
+        <Route path="/"         element={<Home />} />
+        <Route path="/login"    element={user ? <Navigate to="/" /> : <Login />} />
+        <Route path="/signup"   element={user ? <Navigate to="/" /> : <Signup />} />
+        <Route path="/mypage"   element={user ? <Mypage />   : <Navigate to="/login" />} />
         <Route path="/favorite" element={user ? <Favorite /> : <Navigate to="/login" />} />
         <Route path="/cart"     element={user ? <Cart />     : <Navigate to="/login" />} />
-        <Route path="/products" element={<Products />} />
-        <Route path="/products/:id" element={<ProductDetail />} />
-        <Route path="*"         element={<Navigate to="/" />} />
+        <Route path="/products"     element={<Products />} />
+        <Route path="/products/:id"          element={<ProductDetail />} />
+        <Route path="/auth/kakao/callback"   element={<KakaoCallback />} />
+        <Route path="*"                      element={<Navigate to="/" />} />
       </Routes>
     </>
   );
@@ -37,8 +41,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
   );
 }
